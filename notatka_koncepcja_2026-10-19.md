@@ -1,6 +1,6 @@
 # Szybowiec holowany z automatycznym powrotem
 
-Notatka koncepcyjna · 19.10.2026
+Notatka z rozmowy, modelarnia lotnicza na Bródnie · 19.10.2026 · Paweł Nawrocki
 
 Zadanie
 
