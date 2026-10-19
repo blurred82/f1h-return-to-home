@@ -28,6 +28,8 @@ Przykład: 200 m od startu, wiatr 3 m/s, prędkość 7 m/s i opadanie 0,8 m/s da
 
 ## Logika lotu
 
+![Logika lotu: 4 fazy i tryb awaryjny](logika_lotu.svg)
+
 1. **Hol na wyciągarce.** Stery w pozycji do holu, autopilot nieaktywny. → odczepienie (przełącznik haka)
 2. **Lot swobodny.** Stały trym, krążenie jak w wolnym locie, elektronika tylko mierzy. → odległość > R albo brak zapasu wysokości, albo koniec czasu, albo za wysoko
 3. **Powrót (RTL).** Rozpędzenie do 7–9 m/s, lot nad start, krążenie nad startem. → nad startem, poniżej ok. 15 m
