@@ -1,0 +1,12 @@
+# Logi lotów i pliki tymczasowe
+*.bin
+*.tlog
+*.log
+logs/
+
+# System / edytory
+desktop.ini
+Thumbs.db
+.DS_Store
+.vscode/
+*.tmp
