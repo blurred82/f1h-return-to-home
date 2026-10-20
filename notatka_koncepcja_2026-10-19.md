@@ -80,6 +80,20 @@ Planuję użyć ArduPilota (ArduPlane) z własnym skryptem Lua. Daje on więcej 
 
 **Trymowanie z RC na treningu.** Model oblatuje się i trymuje z RC, a system zapamiętuje położenia sterów dla holu i lotu swobodnego. Potem odbiornik można wyjąć i model lata na zapisanych nastawach. Podobnie działa już rosyjski zegar zintegrowany z RC. Bardzo przyspiesza to oblatywanie i testy.
 
+Gotowy autotrim w INAV (tryb AUTO TRIM, ciągły `servo_autotrim`) i ArduPilocie (`SERVO_AUTO_TRIM`) robi coś innego niż opisany wyżej system:
+
+| | Autotrim w INAV / ArduPilocie | Zapamiętywanie nastaw z RC |
+| --- | --- | --- |
+| Cel | lot prosto i poziomo, bez stałego wychylenia drążka | nastawy lotu swobodnego, np. krążenie ze stałym wychyleniem steru kierunku |
+| Jak działa | w locie ze stabilizacją kontroler przesuwa środki serw | pilot ustawia stery z RC, system zapisuje ich położenia |
+| Fazy lotu | jedna nastawa | osobne nastawy dla holu i lotu swobodnego |
+| Zastosowanie | faza powrotu | faza zadania |
+
+- Autotrim przyda się do powrotu: model raz wytrymowany do lotu prostego autopilot lepiej prowadzi nad start.
+- Do nastaw lotu swobodnego się nie nadaje, bo wyprowadzi model do lotu prostego i skasuje krążenie.
+- W INAV nastawy holu i lotu swobodnego da się zrobić półręcznie: po oblataniu z RC odczytać położenia serw w konfiguratorze lub z telemetrii i wpisać je jako stałe wartości w miksie albo w Programming Framework. Automatyczny zapis jednym przełącznikiem wymaga skryptu Lua w ArduPilocie.
+- Nazwy i działanie opcji zależą od wersji oprogramowania, więc trzeba je sprawdzić w dokumentacji używanej wersji.
+
 ## Przepisy i bezpieczeństwo
 
 Z autopilotem model staje się w świetle prawa UE bezzałogowym statkiem powietrznym. Jeśli waży poniżej 250 g i nie ma kamery, mieści się w kategorii otwartej.
