@@ -6,10 +6,10 @@ Przepisy F1H zabraniają automatyki (żyroskop, akcelerometr, GPS, kontroler lot
 
 ## Założenia
 
-- Hol na wyciągarce, potem lot swobodny ze stałym trymem, jak w klasycznym wolnym locie.
-- Elektronika przejmuje sterowanie, gdy model przekroczy promień od startu, zabraknie mu zapasu wysokości na powrót, minie zadany czas albo wejdzie za wysoko.
-- Powrót nad start (RTL), krążenie, a na końcu lądowanie lub determalizator (DT).
-- Przy utracie GPS natychmiastowy DT. Pilot RC może przejąć sterowanie w każdej fazie.
+- Hol ręczny, potem lot swobodny przez czas zadania (60–120 s w F1H, 180–240 s w F1A) ze stałym trymem, jak w klasycznym wolnym locie.
+- Głównym wyzwalaczem powrotu jest koniec czasu zadania. Przekroczenie promienia od startu albo brak zapasu wysokości mogą uruchomić powrót wcześniej.
+- Powrót nad start (RTL) i od razu lądowanie, bez krążenia nad startem.
+- W czasie zadania RC służy tylko do awaryjnego DT (zgodnie z przepisami sportowymi). Pilot może przejąć stery dopiero w fazie powrotu. Przy utracie GPS w powrocie natychmiastowy DT.
 
 Zapas wysokości potrzebny na powrót:
 
@@ -26,7 +26,9 @@ gdzie d to odległość od startu, w_s opadanie, v prędkość lotu, a w wiatr c
 - 2 serwa micro (ster kierunku i statecznik z DT), odbiornik ExpressLRS, akumulator 1S.
 - Mikroprzełącznik na haku do wykrywania odczepienia.
 
-Masa elektroniki to ok. 30–45 g.
+Docelowa masa elektroniki to ok. 30 g.
+
+Do rozwiązania: integracja z istniejącym zegarem modelu, który dziś steruje serwami (kontroler przejmuje funkcje zegara albo multiplekser serw przełącza je między zegarem a kontrolerem).
 
 Wariant uproszczony na początek: automatyczny DT z geofence (ESP32 lub Arduino, GPS i jedno serwo).
 
