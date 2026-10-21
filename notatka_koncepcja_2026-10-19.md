@@ -8,6 +8,8 @@ dobrać elektronikę do istniejącego szybowca holowanego wzorowanego na F1H, ta
 
 **Aktualizacja 20.10.2026** po uwagach instruktora modelarni: hol ręczny, powrót po zakończeniu czasu zadania, lądowanie bez krążenia nad startem, RC w czasie zadania tylko do awaryjnego DT, masa elektroniki ok. 30 g.
 
+**Aktualizacja 21.10.2026:** zegar i kontroler działają osobno, a na końcu zadania zegar oddaje sterowanie jednym sygnałem. Kontroler stoi w komorze na krawędzi. Szczegóły w sekcjach Sprzęt, Integracja z zegarem i Oprogramowanie.
+
 ## Problem
 
 Szybowce holowane ręcznie często odlatują daleko już przy słabym wietrze i giną. Najczęściej dzieje się to wtedy, gdy model wejdzie w komin i wiatr znosi go razem z noszeniem. Celem projektu jest elektronika, która w takiej sytuacji przejmie sterowanie i sprowadzi model nad start.
@@ -55,6 +57,12 @@ Docelowa masa elektroniki to ok. 30 g, a 45 g to już za dużo. Dla porównania 
 | Akumulator | 1S 300–450 mAh z małą przetwornicą 5 V | 10–15 |
 | Przełącznik haka | mikroprzełącznik wykrywający odczepienie | 1 |
 
+**Komora na elektronikę** (płoza kadłubowa) ma 200 mm długości, 55 mm wysokości i 18 mm szerokości. Hak, akumulator i serwa zajmują część, na kontroler zostaje 1/3–1/2 długości.
+
+- **Kontroler (np. Matek H743-MINI, 36 × 28 × 6,5 mm) stoi na krawędzi**, wzdłuż kadłuba: ok. 10–12 mm szerokości z przewodami, 28 mm wysokości. Przewody lutowane do padów, bez wysokich wtyczek. Ułożenie płytki ustawia się w oprogramowaniu (`AHRS_ORIENTATION` w ArduPilocie). Mocowanie na miękkiej piance.
+- **Antena GPS musi leżeć poziomo**, płaską stroną do góry, nie pod węglem ani metalem, z dala od serw i przewodów zasilania. W komorze zmieści się moduł o boku do ok. 15 mm. Większy moduł z kompasem idzie na grzbiet kadłuba lub na skrzydło.
+- Kompas może okazać się zbędny, bo ArduPilot w samolotach ustala kierunek z GPS. Przy wolnym szybowcu i silnym wietrze kompas pomaga, więc to do przetestowania.
+
 ## Integracja z zegarem
 
 Największy problem to połączenie z istniejącym zegarem. Dziś serwa są wpięte w zegar, a kontroler też musi nimi sterować w fazie powrotu. Zegar ma wolne wyjścia, które mogą uruchomić kontroler.
@@ -66,6 +74,29 @@ Największy problem to połączenie z istniejącym zegarem. Dziś serwa są wpi�
 | 3. Zegar jako źródło sygnału | Wyjścia zegara wchodzą do kontrolera, który przekazuje je do serw, a potem przejmuje sterowanie | jedna ścieżka do serw | najbardziej skomplikowany |
 
 Wariant 2 nadaje się na szybki prototyp z obecnym zegarem, wariant 1 na rozwiązanie docelowe. Do omówienia z elektronikiem modelarni: jak zrealizować dwa programy, czyli (1) hol i lot swobodny oraz (2) tryb automatyczny.
+
+### Ustalenia z 21.10.2026
+
+**Zegar modelarni:** mikrokontroler ATtiny1634 (16 KB pamięci programu, 1 KB RAM, 256 B EEPROM, 2 porty szeregowe, 4 kanały PWM). Wejścia: hak i RDT (zwierane do minusa), potencjometr. Wyjścia: jedno serwo (wysokość), buzzer i oświetlenie (przez tranzystory), 6-pinowe złącze wyjść programowalnych, 4-pinowe złącze wprowadzania danych (Bluetooth). Zegar ma 3 programy, jeden zostanie przeznaczony na współpracę z kontrolerem. Kod źródłowy ma elektronik modelarni, który go napisał i może zmieniać.
+
+**Nastawy zegara:** 6 położeń serwa wysokości (PWM), każde z własnym czasem trwania. Zmienia się je na treningu przez moduł Bluetooth podpinany na chwilę do zegara i smartfon.
+
+**Ster kierunku** dziś nie ma serwa: ustawia go hak holowniczy (prosto na holu, po wyczepieniu i sekwencji bunt odchylenie do krążenia). Elektronik dopisze do zegara drugie serwo na kierunek.
+
+**Decyzja: zegar i kontroler działają osobno, kod zegara nie jest potrzebny.** Normalnie zegar po zadaniu odpala DT sterem wysokości. W programie współpracy zamiast tego zawsze oddaje sterowanie kontrolerowi i na tym kończy pracę. Kontroler decyduje: powrót albo od razu DT.
+
+| Cecha sygnału przekazania | Propozycja |
+| --- | --- |
+| Rodzaj | stan logiczny na jednym wolnym wyjściu programowalnym, bez PWM |
+| Znaczenie | niski = steruje zegar, wysoki = steruje kontroler |
+| Kiedy | zegar ustawia stan wysoki zamiast odpalić DT i trzyma go do końca lotu |
+| Po stronie kontrolera | wejście z rezystorem do masy, więc odłączony przewód oznacza „steruje zegar” |
+| Napięcie | przy zegarze na 5 V dzielnik rezystorowy (np. 10 kΩ i 20 kΩ) do 3,3 V |
+| Zatrzask | kontroler przejmuje sterowanie raz i już go nie oddaje |
+
+**Przełączanie serw:** 2-kanałowy multiplekser (wysokość i kierunek) sterowany tym samym sygnałem. W czasie zadania kontroler fizycznie nie może ruszyć sterami, co upraszcza zgodność z przepisami sportowymi. Możliwa realizacja: układ 74LVC1G3157 na każdy kanał albo gotowy multiplekser serw (masę trzeba sprawdzić).
+
+**Na przyszłość:** drugi przewód w odwrotną stronę. Kontroler zwiera do minusa wejście zegara, gdy model odlatuje za daleko lub traci wysokość, a zegar od razu oddaje sterowanie. Na start niepotrzebne.
 
 ## Oprogramowanie
 
@@ -94,6 +125,17 @@ Gotowy autotrim w INAV (tryb AUTO TRIM, ciągły `servo_autotrim`) i ArduPilocie
 - W INAV nastawy holu i lotu swobodnego da się zrobić półręcznie: po oblataniu z RC odczytać położenia serw w konfiguratorze lub z telemetrii i wpisać je jako stałe wartości w miksie albo w Programming Framework. Automatyczny zapis jednym przełącznikiem wymaga skryptu Lua w ArduPilocie.
 - Nazwy i działanie opcji zależą od wersji oprogramowania, więc trzeba je sprawdzić w dokumentacji używanej wersji.
 
+**Zmiany nastaw na polu.** W kontrolerze sekwencja zegara to 12 parametrów skryptu Lua o czytelnych nazwach, np. `FF_P1`…`FF_P6` (położenia) i `FF_T1`…`FF_T6` (czasy), oraz czas zadania.
+
+| Sposób | Zalety | Wady |
+| --- | --- | --- |
+| Nadajnik RC w locie, zapis przełącznikiem | najszybszy, efekt widać od razu, bez lądowania | tylko na treningu, trzeba napisać zapis nastaw |
+| Strona w przeglądarce telefonu (ESP32, Wi-Fi) | każdy telefon, bez instalowania, najbliżej dzisiejszego Bluetooth | trzeba napisać stronę |
+| QGroundControl przez Bluetooth (ArduPilot) | działa od razu, darmowy | tylko Android (na iOS tylko Wi-Fi), rozbudowany |
+| SpeedyBee App (INAV) | darmowy, Android i iOS | nie wiadomo, czy pokaże wszystkie nastawy |
+
+Proponowana kolejność: na start QGroundControl, przy oblatywaniu trymowanie z RC, docelowo dla klubu strona na ESP32.
+
 ## Przepisy i bezpieczeństwo
 
 Z autopilotem model staje się w świetle prawa UE bezzałogowym statkiem powietrznym. Jeśli waży poniżej 250 g i nie ma kamery, mieści się w kategorii otwartej.
@@ -117,8 +159,8 @@ Z autopilotem model staje się w świetle prawa UE bezzałogowym statkiem powiet
 
 ## Pytania otwarte
 
-- Czy system 12–15 g, który już lata, to zegar z RDT, czy kontroler z GPS?
-- Jakie wolne wyjścia ma zegar i jakim sygnałem może uruchomić kontroler?
-- Który wariant integracji z zegarem wybrać na prototyp, a który docelowo?
-- Ile waży model, gdzie ma środek ciężkości i ile wolnego miejsca jest w kadłubie?
-- Czy model udźwignie ok. 30 g elektroniki bez utraty osiągów?
+- Które wyjście programowalne zegara da sygnał przekazania i jakim napięciem pracuje zegar (3,3 V czy 5 V)?
+- Czy 6-pinowe złącze to wyjścia, czy złącze do programowania procesora?
+- Multiplekser serw: własny układ elektronika czy gotowy moduł? Ile waży?
+- Który moduł GPS: mały w komorze bez kompasu czy większy z kompasem na zewnątrz?
+- Ile waży model i gdzie ma środek ciężkości? Czy udźwignie ok. 30 g elektroniki bez utraty osiągów?
